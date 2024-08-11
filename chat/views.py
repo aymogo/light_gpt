@@ -14,7 +14,7 @@ client = openai.OpenAI(
 
 
 class ChatView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def post(self, request):
         chat_id = request.data.get("chat_id")
@@ -58,7 +58,9 @@ class ChatView(APIView):
         return Response({"reply": bot_reply})
 
 
-""" there should be a class for making requests for existing chats of user
+# complated
+""" 
+there should be a class for making requests for existing chats of user
 it use `response.id` to save the context of the topic in chatgpt
 if chat_id exists then take that chat else it None then make a new chat
 """
@@ -66,7 +68,7 @@ if chat_id exists then take that chat else it None then make a new chat
 
 class ChatHistoryView(generics.ListAPIView):
     serializer_class = serializers.MessageSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         chat_pk = self.kwargs["pk"]
@@ -77,4 +79,6 @@ class ChatListView(generics.ListAPIView):
     serializer_class = serializers.ChatListSerializer
 
     def get_queryset(self):
-        return models.Chat.objects.filter(user=self.request.user)
+        return models.Chat.objects.filter(user=self.request.user.id).order_by(
+            "-created_at"
+        )

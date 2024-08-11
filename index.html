@@ -2,11 +2,75 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>ChatGPT Clone</title>
-    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <nav id="sidebar">
+        <div class="float-top">
+            <div class="sidebar-controls">
+                <button class="new-chat"><i class="fa fa-plus"></i> New chat</button>
+            </div>
+            <ul class="conversations" id="navbar">
+                
+            </ul>
+        </div>
+
+        <script>
+            const username = 'admin';
+            const password = 'admin';
+            const headers = new Headers();
+            headers.set('Authorization', 'Basic ' + btoa(username + ":" + password));
+            const fetchChatData = () => {
+                console.log('Fetching chat data...');  // Log the start of the fetch
+        
+                fetch('http://127.0.0.1:8000/api/v1/chat/list/', { headers: headers })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Network response was not ok, status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Received data:', data);  // Log the received data
+        
+                        const navbar = document.getElementById('navbar'); // Get the navbar element
+        
+                        if (data.length === 0) {
+                            console.log('No chat items found.');
+                        }
+        
+                        data.forEach(chat => {
+                            const listItem = document.createElement('li'); // Create <li>
+                            const button = document.createElement('button'); // Create <button>
+                            button.className = 'conversation-button'; // Add class
+                            button.innerHTML = `<i class="fa fa-message fa-regular"></i> ${chat.title}`; // Set content
+        
+                            const fadeDiv = document.createElement('div'); // Create <div> for fade
+                            fadeDiv.className = 'fade';
+
+                            const editButton = document.createElement('button'); // Create edit button
+                            editButton.innerHTML = '<i class="fa fa-edit"></i>';
+        
+                            const deleteButton = document.createElement('button'); // Create delete button
+                            deleteButton.innerHTML = '<i class="fa fa-trash"></i>';
+        
+                            listItem.appendChild(button); // Append conversation button
+                            listItem.appendChild(fadeDiv); // Append fade div
+        
+                            navbar.appendChild(listItem); // Finally, append the list item to the navbar
+                        });
+                    })
+                    .catch(error => console.error('Error fetching chat data:', error));
+            };
+        
+            document.addEventListener('DOMContentLoaded', fetchChatData);
+        </script>
+
+    </nav>
     <div class="chat-container">
         <div class="chat-header">
             ChatGPT
@@ -25,31 +89,58 @@
             const chatInput = document.getElementById('chat-input');
             const chatBody = document.getElementById('chat-body');
             const userMessage = chatInput.value;
-
+    
             if (userMessage.trim() !== '') {
                 // Append user message to the chat body
-                chatBody.innerHTML += `<div class="chat-message user">
-                    <div class="message-content">${userMessage}</div>
+                chatBody.innerHTML += `<div class="chat-message user userMessage">
+                    <div class="message-content ">${userMessage}</div>
                 </div>`;
-
+    
                 // Scroll to the bottom of the chat body
                 chatBody.scrollTop = chatBody.scrollHeight;
-
+    
                 // Clear the input field
                 chatInput.value = '';
 
+                const username = 'admin';
+                const password = 'admin';
+                const headers = new Headers();
+                headers.set('Authorization', 'Basic ' + btoa(username + ":" + password));
+                headers.set('Content-Type', 'application/json');
+    
                 // Simulate GPT response
                 setTimeout(() => {
-                    const gptReply = 'This is a simulated response from GPT.';
-
-                    chatBody.innerHTML += `<div class="chat-message gpt">
-                        <div class="message-content">${gptReply}</div>
-                    </div>`;
-
-                    chatBody.scrollTop = chatBody.scrollHeight;
+                    fetch('http://127.0.0.1:8000/api/v1/chat/', {
+                        method: "POST",
+                        headers: headers,
+                        body: JSON.stringify({ "message": userMessage, "chat_id": 2351 })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Network response was not ok, status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Received data:', data);  // Log the received data
+                        
+                        // Assuming the GPT reply is in `content` field of the response
+                        const gptReply = data.reply;
+    
+                        // Append GPT's response to the chat body
+                        chatBody.innerHTML += `<div class="chat-message gpt answer">
+                            <div class="reply message-content">${gptReply}</div>
+                        </div>`;
+    
+                        // Scroll to the bottom of the chat body
+                        chatBody.scrollTop = chatBody.scrollHeight;
+                    })
+                    .catch(error => console.error('Error:', error));
                 }, 1000);
             }
         }
     </script>
+    
+    <script src="script.js"></script>
 </body>
 </html>
